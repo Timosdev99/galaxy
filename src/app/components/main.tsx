@@ -1,7 +1,7 @@
 "use client"
 
 import React from 'react';
-import { ArrowRight, Map, ShoppingCart, Home, Phone, Mail, Menu, X } from 'lucide-react';
+import { ArrowRight, Map, ShoppingCart, Home, Phone, Mail } from 'lucide-react';
 
 
 
