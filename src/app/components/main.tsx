@@ -2,8 +2,8 @@
 
 import React from 'react';
 import { ArrowRight, Map, ShoppingCart, Home, Phone, Mail } from 'lucide-react';
-
-
+import SignupModal from './signup';
+import { motion } from "framer-motion";
 
 const servicesData = [
     {
@@ -33,7 +33,6 @@ const servicesData = [
     }
 ];
 
-
 const ServiceCard = ({ service, index }: any) => {
     const gradients = [
         "from-blue-50 to-white",
@@ -42,49 +41,94 @@ const ServiceCard = ({ service, index }: any) => {
     ];
 
     return (
-        <div className={`bg-gradient-to-br ${gradients[index % 3]} p-6 sm:p-8 flex flex-col items-center shadow-lg rounded-xl h-full transition-all duration-300 hover:shadow-xl`}>
-            <div className="flex items-center justify-center mb-4">
+        <motion.div 
+            className={`bg-gradient-to-br ${gradients[index % 3]} p-6 sm:p-8 flex flex-col items-center shadow-lg rounded-xl h-full transition-all duration-300 hover:shadow-xl`}
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: index * 0.2 }}
+            viewport={{ once: true }}
+        >
+            <motion.div 
+                className="flex items-center justify-center mb-4"
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                transition={{ duration: 0.5, delay: 0.3 + index * 0.2 }}
+                viewport={{ once: true }}
+            >
                 {service.icon}
                 <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 ml-2">{service.head}</h2>
-            </div>
+            </motion.div>
 
-            <p className="text-center text-base sm:text-lg text-slate-700 mb-4">{service.description1}</p>
-            <p className="text-center text-base sm:text-lg text-slate-700 w-full mb-6">{service.description2}</p>
+            <motion.p 
+                className="text-center text-base sm:text-lg text-slate-700 mb-4"
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: 0.4 + index * 0.2 }}
+                viewport={{ once: true }}
+            >
+                {service.description1}
+            </motion.p>
+            
+            <motion.p 
+                className="text-center text-base sm:text-lg text-slate-700 w-full mb-6"
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: 0.5 + index * 0.2 }}
+                viewport={{ once: true }}
+            >
+                {service.description2}
+            </motion.p>
             
             <div className="w-full flex flex-col gap-3 mb-6">
-                {service.buttons.map((buttonText: string, btnIndex: string) => (
-                    <button 
+                {service.buttons.map((buttonText: string, btnIndex: number) => (
+                    <motion.button 
                         key={btnIndex}
-                        className="w-full flex items-center justify-center py-3 px-4 rounded-lg bg-white border border-gray-200 text-gray-700 text-base sm:text-lg font-medium shadow-sm hover:bg-gray-50 hover:shadow transition-all duration-200"
+                        className="w-full flex items-center justify-center py-3 px-4 rounded-lg bg-white border border-gray-200 text-gray-700 text-base sm:text-lg font-medium shadow-sm hover:bg-gray-50 hover:shadow-lg transition-all duration-200"
+                        initial={{ opacity: 0, x: -20 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.5, delay: 0.6 + btnIndex * 0.1 + index * 0.2 }}
+                        viewport={{ once: true }}
                     >
                         {buttonText}
-                    </button>
+                    </motion.button>
                 ))}
             </div>
             
             {service.finalDescription && (
-                <p className="text-center text-sm sm:text-base text-slate-600 mb-6">{service.finalDescription}</p>
+                <motion.p 
+                    className="text-center text-sm sm:text-base text-slate-600 mb-6"
+                    initial={{ opacity: 0, x: -20 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.5, delay: 0.8 + index * 0.2 }}
+                    viewport={{ once: true }}
+                >
+                    {service.finalDescription}
+                </motion.p>
             )}
             
-            <button className={`mt-auto w-full sm:w-auto flex items-center justify-center gap-2 py-3 px-6 rounded-lg text-white font-semibold text-base sm:text-lg shadow-md transition-all duration-300 hover:shadow-lg hover:translate-y-[-2px] ${
-                index === 0 ? "bg-blue-600 hover:bg-blue-700" :
-                index === 1 ? "bg-indigo-600 hover:bg-indigo-700" :
-                "bg-purple-600 hover:bg-purple-700"
-            }`}>
-                <a href="https://signal.me/#eu/ZPC2JVhP6HOFJnnJ3n-7PjYdS2CDWj10-0Dngt2CYlnPiIMLO3ZCa66AMfFMJKTp"><span>{service.cta}</span></a>
+            <motion.button 
+                className={`mt-auto w-full sm:w-auto flex items-center justify-center gap-2 py-3 px-6 rounded-lg text-white font-semibold text-base sm:text-lg shadow-md transition-all duration-300 hover:shadow-lg hover:translate-y-[-2px] ${
+                    index === 0 ? "bg-blue-600 hover:bg-blue-700" :
+                    index === 1 ? "bg-indigo-600 hover:bg-indigo-700" :
+                    "bg-purple-600 hover:bg-purple-700"
+                }`}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 1 + index * 0.2 }}
+                viewport={{ once: true }}
+            >
+                <a href="https://signal.me/#eu/ZPC2JVhP6HOFJnnJ3n-7PjYdS2CDWj10-0Dngt2CYlnPiIMLO3ZCa66AMfFMJKTp">
+                    <span>{service.cta}</span>
+                </a>
                 <ArrowRight className="h-5 w-5" />
-            </button>
-        </div>
+            </motion.button>
+        </motion.div>
     );
 };
 
-
 export default function Mainpage() {
-    
-    
     return (
         <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
-        
             <header className="bg-white sticky top-0 z-50 py-5 shadow-md">
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-between h-16 sm:h-20">
@@ -92,38 +136,60 @@ export default function Mainpage() {
                             <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">GalaxyServices</h1>
                         </div>
                         
-                        
-                        
-                        
-                        
-                        <div className=" sm:flex items-center space-x-4">
-                            <button className="bg-gradient-to-r from-blue-600 cursor-pointer lg:font-bold to-indigo-600 text-white lg:text-xl sm:py-4 sm:px-3 sm:rounded-sm   px-5 py-3 rounded-lg hover:shadow-lg transition-all duration-300">
-                                Login / Register
-                            </button>
+                        <div className="sm:flex items-center space-x-4">
+                           
+                         <SignupModal/>
+                              
                         </div>
                     </div>
                 </div>
-                
-               
-               
             </header>
 
-            
-            <div className="bg-gradient-to-r from-amber-100 to-amber-200 border-y border-amber-300 py-6">
-                        <div className="flex-1">
-                            <p className=" text-xl text-center  font-bold text-amber-800">
-                            Our Telegram Channels were recently shut down. We are building a new platform from scratch to give users an easier, more reliable experience when using our services. Sign up for an account and join the community today!
-                         </p>
-                        </div>             
-            </div>
-            
+            <motion.div 
+                className="bg-gradient-to-r from-amber-100 to-amber-200 border-y border-amber-300 py-6"
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8 }}
+            >
+                <div className="flex-1">
+                    <motion.p 
+                        className="text-xl text-center font-bold text-amber-800"
+                        initial={{ opacity: 0, x: -30 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.8, delay: 0.3 }}
+                    >
+                        Our Telegram Channels were recently shut down. We are building a new platform from scratch to give users an easier, more reliable experience when using our services. Sign up for an account and join the community today!
+                    </motion.p>
+                </div>             
+            </motion.div>
            
             <div className="container mx-auto px-4 py-12 sm:py-16">
-                <div className="text-center max-w-3xl mx-auto mb-12">
-                    <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">Your One-Stop Solution for Discounted Services</h2>
-                    <p className="text-lg text-gray-600">Explore the world with Galaxy - your gate way to unforgettable adventures and seamless travel experince</p>
-                </div>
-                
+                <motion.div 
+                    className="text-center max-w-3xl mx-auto mb-12"
+                    initial={{ opacity: 0, x: -30 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.8 }}
+                    viewport={{ once: true }}
+                >
+                    <motion.h2 
+                        className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4"
+                        initial={{ opacity: 0, x: -30 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.8, delay: 0.2 }}
+                        viewport={{ once: true }}
+                    >
+                        Your One-Stop Solution for Discounted Services
+                    </motion.h2>
+                    <motion.p 
+                        className="text-lg text-gray-600"
+                        initial={{ opacity: 0, x: -30 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.8, delay: 0.4 }}
+                        viewport={{ once: true }}
+                    >
+                        Explore the world with Galaxy - your gate way to unforgettable adventures and seamless travel experince
+                    </motion.p>
+                </motion.div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
                     {servicesData.map((service, index) => (
@@ -132,29 +198,64 @@ export default function Mainpage() {
                 </div>
             </div>
             
-            
-           
-            
-            
-            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 py-12 sm:py-16">
+            <motion.div 
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 py-12 sm:py-16"
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                transition={{ duration: 1 }}
+                viewport={{ once: true }}
+            >
                 <div className="container mx-auto px-4 text-center">
-                    <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">Ready to Start Saving?</h2>
-                    <p className="text-blue-100 text-lg mb-6">Join thousands of satisfied customers who are saving money every day.</p>
-                    <button className="bg-white text-blue-600 font-semibold px-6 py-3 rounded-lg shadow-lg hover:bg-blue-50 transition-colors duration-300">
-                        Create Your Account
-                    </button>
+                    <motion.h2 
+                        className="text-2xl sm:text-3xl font-bold text-white mb-4"
+                        initial={{ opacity: 0, x: -30 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.8, delay: 0.2 }}
+                        viewport={{ once: true }}
+                    >
+                        Ready to Start Saving?
+                    </motion.h2>
+                    <motion.p 
+                        className="text-blue-100 text-lg mb-6"
+                        initial={{ opacity: 0, x: -30 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.8, delay: 0.4 }}
+                        viewport={{ once: true }}
+                    >
+                        Join thousands of satisfied customers who are saving money every day.
+                    </motion.p>
+                   
+                            <motion.button 
+                                className="bg-white text-blue-600 font-semibold px-6 py-3 rounded-lg shadow-lg hover:bg-blue-50 transition-colors duration-300"
+                                initial={{ opacity: 0, y: 20 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.8, delay: 0.6 }}
+                                viewport={{ once: true }}
+                            >
+                                Create Your Account
+                            </motion.button>
+                       
                 </div>
-            </div>
-            
+            </motion.div>
             
             <footer className="bg-gray-900 text-white py-10">
                 <div className="container mx-auto px-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                        <div>
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.8 }}
+                            viewport={{ once: true }}
+                        >
                             <h3 className="text-xl font-bold mb-4">GalaxyServices</h3>
                             <p className="text-gray-400">Your one-stop solution for discounted services across travel, food, shopping and more.</p>
-                        </div>
-                        <div>
+                        </motion.div>
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.8, delay: 0.2 }}
+                            viewport={{ once: true }}
+                        >
                             <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
                             <ul className="space-y-2">
                                 <li><a href="#" className="text-gray-400 hover:text-white transition-colors duration-300">Home</a></li>
@@ -162,8 +263,13 @@ export default function Mainpage() {
                                 <li><a href="#" className="text-gray-400 hover:text-white transition-colors duration-300">About Us</a></li>
                                 <li><a href="#" className="text-gray-400 hover:text-white transition-colors duration-300">Contact</a></li>
                             </ul>
-                        </div>
-                        <div>
+                        </motion.div>
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.8, delay: 0.4 }}
+                            viewport={{ once: true }}
+                        >
                             <h3 className="text-lg font-semibold mb-4">Services</h3>
                             <ul className="space-y-2">
                                 <li><a href="#" className="text-gray-400 hover:text-white transition-colors duration-300">Travel</a></li>
@@ -171,8 +277,13 @@ export default function Mainpage() {
                                 <li><a href="#" className="text-gray-400 hover:text-white transition-colors duration-300">Shopping</a></li>
                                 <li><a href="#" className="text-gray-400 hover:text-white transition-colors duration-300">Refunds</a></li>
                             </ul>
-                        </div>
-                        <div>
+                        </motion.div>
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.8, delay: 0.6 }}
+                            viewport={{ once: true }}
+                        >
                             <h3 className="text-lg font-semibold mb-4">Contact Us</h3>
                             <ul className="space-y-2">
                                 <li className="flex items-center">
@@ -184,11 +295,17 @@ export default function Mainpage() {
                                     <span className="text-gray-400">+1 (555) 123-4567</span>
                                 </li>
                             </ul>
-                        </div>
+                        </motion.div>
                     </div>
-                    <div className="border-t border-gray-800 mt-8 pt-6 text-center">
+                    <motion.div 
+                        className="border-t border-gray-800 mt-8 pt-6 text-center"
+                        initial={{ opacity: 0 }}
+                        whileInView={{ opacity: 1 }}
+                        transition={{ duration: 0.8, delay: 0.8 }}
+                        viewport={{ once: true }}
+                    >
                         <p className="text-gray-400">&copy; {new Date().getFullYear()} GalaxyServices. All rights reserved.</p>
-                    </div>
+                    </motion.div>
                 </div>
             </footer>
         </div>
