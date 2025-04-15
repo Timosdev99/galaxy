@@ -3,24 +3,38 @@
 import { useState, useEffect } from 'react';
 import { 
   BarChart, 
- 
   Package, 
   Ticket, 
   Percent, 
-  
   User, 
   FileText, 
   Settings, 
   HelpCircle, 
   Sun,
   Moon,
-  Menu
+  Menu,
+  LogOut,
+  Home
 } from 'lucide-react';
+import { useAuth } from '../../context/authContext';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function Dashboard() {
   const [selectedStatus, setSelectedStatus] = useState('All');
   const [isLightMode, setIsLightMode] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  
+  const { user, logout } = useAuth();
+  const router = useRouter();
+
+  
+  useEffect(() => {
+    if (!user) {
+      router.push('/');
+    }
+  }, [user, router]);
 
   useEffect(() => {
     const storedTheme = localStorage.getItem("theme");
@@ -48,7 +62,23 @@ export default function Dashboard() {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
+  const toggleProfile = () => {
+    setIsProfileOpen(!isProfileOpen);
+  };
+
+  const handleLogout = () => {
+    logout();
+    router.push('/');
+  };
+
  
+  const getUserInitial = () => {
+    if (user?.name) {
+      return user.name.charAt(0).toUpperCase();
+    }
+    return "U";
+  };
+
   const projects = [
     { id: 1, name: "mercerdes", dueDate: "28.04.24", status: "Completed" },
     { id: 2, name: "car rental", dueDate: "30.04.24", status: "Delayed" },
@@ -85,8 +115,36 @@ export default function Dashboard() {
                   <Sun className="h-5 w-5 text-yellow-400" />
                 }
               </button>
-              <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-blue-600 flex items-center justify-center">
-                <span className="text-white font-medium">TF</span>
+              
+              {/* user profile dropdown */}
+              <div className="relative">
+                <button 
+                  onClick={toggleProfile}
+                  className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-medium"
+                  aria-expanded={isProfileOpen}
+                >
+                  {getUserInitial()}
+                </button>
+                
+                {isProfileOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl py-2 z-50 border border-gray-200">
+                    <div className="px-4 py-3 border-b border-gray-100">
+                      <p className="text-sm font-medium text-gray-900">{user?.name}</p>
+                      <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+                      {user?.id && <p className="text-xs text-gray-400 mt-1">ID: {user.id}</p>}
+                    </div>
+                    
+                    <div className="py-1">
+                      <button
+                        onClick={handleLogout}
+                        className="flex w-full items-center px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                      >
+                        <LogOut className="mr-2 h-4 w-4" />
+                        Sign out
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -94,7 +152,6 @@ export default function Dashboard() {
       </header>
 
       <div className="flex flex-col md:flex-row">
-       
         
         {isMobileMenuOpen && (
           <aside className={`md:hidden flex flex-col w-full ${isLightMode ? 'bg-white' : 'bg-slate-900 text-white'} border-b-2 border-gray-300 z-40`}>
@@ -103,6 +160,12 @@ export default function Dashboard() {
                 <BarChart className="mr-3 h-5 w-5" />
                 Dashboard
               </a>
+              <a href="/" className={`group flex items-center px-4 py-3 text-sm font-medium ${isLightMode ? 'text-gray-600' : 'text-gray-300'} rounded-md hover:bg-gray-700 hover:text-white`}>
+              <Home className="mr-3 h-5 w-5" />
+              
+               Home
+               
+            </a>
               <a href="#" className={`group flex items-center px-4 py-3 text-sm font-medium ${isLightMode ? 'text-gray-600' : 'text-gray-300'} rounded-md hover:bg-gray-50 hover:text-gray-900`}>
                 <Package className="mr-3 h-5 w-5" />
                 Orders
@@ -127,16 +190,28 @@ export default function Dashboard() {
                 <HelpCircle className="mr-3 h-5 w-5" />
                 Support
               </a>
+              <button 
+                onClick={handleLogout}
+                className={`group flex items-center px-4 py-3 text-sm font-medium w-full text-left ${isLightMode ? 'text-red-600' : 'text-red-400'} rounded-md hover:bg-gray-50 hover:text-red-700`}
+              >
+                <LogOut className="mr-3 h-5 w-5" />
+                Sign Out
+              </button>
             </nav>
           </aside>
         )}
 
-        
         <aside className={`hidden md:flex flex-col w-64 ${isLightMode ? 'bg-white' : 'bg-slate-900 text-white'} border-r-2 border-gray-300 h-screen sticky top-20`}>
           <nav className="mt-5 px-2">
             <a href="#" className="group flex items-center px-4 py-3 text-sm font-medium rounded-md bg-blue-50 text-blue-700">
               <BarChart className="mr-3 h-5 w-5" />
               Dashboard
+            </a>
+            <a href="/" className={`group flex items-center px-4 py-3 text-sm font-medium ${isLightMode ? 'text-gray-600' : 'text-gray-300'} rounded-md hover:bg-gray-700 hover:text-white`}>
+              <Home className="mr-3 h-5 w-5" />
+              
+               Home
+               
             </a>
             <a href="#" className={`group flex items-center px-4 py-3 text-sm font-medium ${isLightMode ? 'text-gray-600' : 'text-gray-300'} rounded-md hover:bg-gray-700 hover:text-white`}>
               <Package className="mr-3 h-5 w-5" />
@@ -162,9 +237,32 @@ export default function Dashboard() {
               <HelpCircle className="mr-3 h-5 w-5" />
               Support
             </a>
-            <div className={`flex items-center mt-20 ml-4 ${isLightMode ? 'text-gray-600' : 'text-gray-300'} gap-2`}>
-              <span className="text-sm">{isLightMode ? "Dark mode" : "Light mode"}</span>
+            
+            {/* User info display */}
+            <div className=" border-t border-gray-300 pt-4 pb-2 px-4 mt-8">
+              {user && (
+                <div className={`flex flex-col ${isLightMode ? 'text-gray-700' : 'text-gray-300'}`}>
+                  <div className="flex items-center mb-2">
+                    <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center text-white mr-2">
+                      {getUserInitial()}
+                    </div>
+                    <div className="text-sm font-medium overflow-hidden">
+                      <p className="truncate max-w-[170px]">{user.name}</p>
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-500 truncate max-w-[200px] mb-2">{user.email}</p>
+                  <button 
+                    onClick={handleLogout}
+                    className="flex items-center text-sm text-red-500 hover:text-red-600 mt-2"
+                  >
+                    <LogOut className="h-4 w-4 mr-1" />
+                    Sign out
+                  </button>
+                </div>
+              )}
             </div>
+            
+          
           </nav>
         </aside>
 
@@ -184,6 +282,7 @@ export default function Dashboard() {
                 </select>
               </div>
             </div>
+
 
             
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">

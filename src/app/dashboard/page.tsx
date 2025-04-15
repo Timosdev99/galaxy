@@ -1,12 +1,14 @@
 import Dashboard from "./container/dashboard"
-
+import ProtectedRoute from "../protectedRoute"
 
 
 
 export default function page() {
     return(
-        <div>
+       <ProtectedRoute>
+         <div>
           <Dashboard/>
         </div>
+       </ProtectedRoute>
     )
 }
