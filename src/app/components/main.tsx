@@ -4,6 +4,9 @@ import React from 'react';
 import { ArrowRight, Map, ShoppingCart, Home, Phone, Mail } from 'lucide-react';
 import SignupModal from './signup';
 import { motion } from "framer-motion";
+import OrderButton from './orderbutton';
+import OrderComponent from './order';
+import OrderLink from './orderlink';
 
 const servicesData = [
     {
@@ -106,8 +109,8 @@ const ServiceCard = ({ service, index }: any) => {
                 </motion.p>
             )}
             
-            <motion.button 
-                className={`mt-auto w-full sm:w-auto flex items-center justify-center gap-2 py-3 px-6 rounded-lg text-white font-semibold text-base sm:text-lg shadow-md transition-all duration-300 hover:shadow-lg hover:translate-y-[-2px] ${
+            <motion.div 
+                className={`mt-auto w-full sm:w-auto flex justify-center py-3 px-6 rounded-lg text-white font-semibold text-base sm:text-lg shadow-md transition-all duration-300 hover:shadow-lg hover:translate-y-[-2px] ${
                     index === 0 ? "bg-blue-600 hover:bg-blue-700" :
                     index === 1 ? "bg-indigo-600 hover:bg-indigo-700" :
                     "bg-purple-600 hover:bg-purple-700"
@@ -117,11 +120,8 @@ const ServiceCard = ({ service, index }: any) => {
                 transition={{ duration: 0.5, delay: 1 + index * 0.2 }}
                 viewport={{ once: true }}
             >
-                <a href="https://signal.me/#eu/ZPC2JVhP6HOFJnnJ3n-7PjYdS2CDWj10-0Dngt2CYlnPiIMLO3ZCa66AMfFMJKTp">
-                    <span>{service.cta}</span>
-                </a>
-                <ArrowRight className="h-5 w-5" />
-            </motion.button>
+                <OrderLink marketplace={service.head} />
+            </motion.div>
         </motion.div>
     );
 };

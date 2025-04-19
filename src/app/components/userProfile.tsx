@@ -35,9 +35,9 @@ const UserProfile = () => {
   
   const getInitial = () => {
     if (user?.name) {
-      return user.name.charAt(0).toUpperCase();
+      return  user.name.charAt(0).toUpperCase();
     }
-    return "U";
+    return <User/>;
   };
 
   return (
@@ -51,11 +51,11 @@ const UserProfile = () => {
       </button>
       
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-60 bg-white rounded-lg shadow-xl py-2 z-50 border border-gray-200">
+        <div className="absolute right-0 mt-2 w-72 bg-white rounded-lg shadow-xl py-2 z-50 border border-gray-200">
           <div className="px-4 py-3 border-b border-gray-100">
-            <p className="text-sm font-medium text-gray-900">{user?.name}</p>
-            <p className="text-xs text-gray-500 truncate">{user?.email}</p>
-            {user?.id && <p className="text-xs text-gray-400 mt-1">ID: {user.id}</p>}
+            <p className="text-lg font-medium text-gray-900">{user?.name}</p>
+            <p className="text-lg text-black truncate">{user?.email}</p>
+            {user?.id && <p className="text-sm text-black mt-1">ID: {user.id}</p>}
           </div>
           
           <div className="py-1">
