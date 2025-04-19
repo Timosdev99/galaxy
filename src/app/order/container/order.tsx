@@ -35,7 +35,7 @@ interface CreateOrder {
   notes?: string;
 }
 
-export default function OrderPage() {
+ function OrderContent() {
   const searchParams = useSearchParams();
   const initialMarketplace = searchParams.get("marketplace") || "GalaxyService";
   const { token, user } = useAuth(); 
@@ -730,5 +730,11 @@ export default function OrderPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function OrderPage() {
+  return (
+    <OrderContent />
   );
 }
