@@ -222,30 +222,18 @@ const SignupModal = () => {
       });
   
       //console.log('Login response status:', response.status);
-      
-      
-  
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Failed to login');
       }
-  
       const data = await response.json();
      // console.log('Login successful, received data:', data);
-      
-    
-      let token = null;
-      
-     
+       let token = null;
       const authHeader = response.headers.get('authorization') || response.headers.get('Authorization');
       if (authHeader) {
         token = authHeader.startsWith('Bearer ') ? authHeader.substring(7) : authHeader;
        
       }
-      
-    
-      
-      
       
       if (!token) {
         
@@ -254,7 +242,6 @@ const SignupModal = () => {
       }
       
      // console.log('Auth token received:', token);
-      
       
       if (data && data.user) {
         authLogin(token, data.user);

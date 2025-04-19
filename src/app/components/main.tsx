@@ -4,8 +4,6 @@ import React from 'react';
 import { ArrowRight, Map, ShoppingCart, Home, Phone, Mail } from 'lucide-react';
 import SignupModal from './signup';
 import { motion } from "framer-motion";
-import OrderButton from './orderbutton';
-import OrderComponent from './order';
 import OrderLink from './orderlink';
 
 const servicesData = [
