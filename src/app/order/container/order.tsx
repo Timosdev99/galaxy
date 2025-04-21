@@ -52,6 +52,14 @@ interface CreateOrder {
     discount: 0
   });
 
+
+  const marketplaceCategories = {
+    GalaxyService: ["Flights", "Hotels", "Car Rentals", "Fines/Tickets", "International Travel"],
+    studio43: ["DoorDash Food Delivery", "Walmart Groceries", "Clothing", "Amazon"],
+    NorthernEats: ["DoorDash Food Delivery", "Walmart", "Refunds", "eBay"]
+  };
+  
+
   const [orderData, setOrderData] = useState<CreateOrder>({
     customerId: "",
     marketplace: initialMarketplace as "GalaxyService" | "studio43" | "NorthernEats",
@@ -77,6 +85,7 @@ interface CreateOrder {
     setOrderData(prev => ({
       ...prev,
       marketplace: initialMarketplace as "GalaxyService" | "studio43" | "NorthernEats",
+      category: "",
       customerId: user?.id || "" 
     }));
   }, [initialMarketplace, user?.id]);
@@ -101,7 +110,14 @@ interface CreateOrder {
   const handleInputChange = (e: { target: { name: any; value: any; }; }) => {
     const { name, value } = e.target;
     
-    if (name.startsWith("shipping.")) {
+    if (name === "marketplace") {
+      
+      setOrderData({
+        ...orderData,
+        marketplace: value,
+        category: "" 
+      });
+    } else if (name.startsWith("shipping.")) {
       const shippingField = name.split(".")[1];
       setOrderData({
         ...orderData,
@@ -330,19 +346,24 @@ interface CreateOrder {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Category 
-                  </label>
-                  <input
-                    type="text"
-                    name="category"
-                    value={orderData.category}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full p-3 border border-slate-300 text-slate-900 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm"
-                  />
-                </div>
-
+  <label className="block text-sm font-medium text-slate-700 mb-1">
+    Category 
+  </label>
+  <select
+    name="category"
+    value={orderData.category}
+    onChange={handleInputChange}
+    required
+    className="w-full p-3 border border-slate-300 text-slate-900 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm"
+  >
+    <option value="" disabled>Select a category</option>
+    {marketplaceCategories[orderData.marketplace] && marketplaceCategories[orderData.marketplace].map((category, index) => (
+      <option key={index} value={category}>
+        {category}
+      </option>
+    ))}
+  </select>
+</div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">
                     Payment Method 
