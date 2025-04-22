@@ -1,43 +1,109 @@
-
 import { useState } from 'react';
 import StatusBadge from './StatusBadge';
 
-export default function ProjectTable({ isLightMode }: any) {
+interface OrderItem {
+  productId: string;
+  name: string;
+  price: number;
+  quantity: number;
+  discount: number;
+  _id: string;
+}
+
+interface Payment {
+  method: string;
+  amount: number;
+  currency: string;
+  status: string;
+  _id: string;
+}
+
+interface Shipping {
+  address: string;
+  city: string;
+  state: string;
+  country: string;
+  postalCode: string;
+  contactPhone: string;
+  _id: string;
+}
+
+interface Order {
+  _id: string;
+  id: string;
+  orderNumber: string;
+  customerId: string;
+  marketplace: string;
+  category: string;
+  status: string;
+  items: OrderItem[];
+  totalAmount: number;
+  tax: number;
+  shippingCost: number;
+  discount: number;
+  finalAmount: number;
+  placedAt: string;
+  payment: Payment;
+  shipping: Shipping;
+  notes: string;
+  lastUpdatedAt: string;
+  createdAt: string;
+  updatedAt: string;
+  isRefundEligible: boolean;
+  isDigitalService: boolean;
+  isPhysicalProduct: boolean;
+  isFood: boolean;
+}
+
+interface ProjectTableProps {
+  isLightMode: boolean;
+  orders: Order[];
+}
+
+export default function ProjectTable({ isLightMode, orders = [] }: ProjectTableProps) {
   const [selectedStatus, setSelectedStatus] = useState('All');
 
-  const projects = [
-    { id: 1, name: "mercerdes", dueDate: "28.04.24", status: "Completed" },
-    { id: 2, name: "car rental", dueDate: "30.04.24", status: "Delayed" },
-    { id: 3, name: "Hamburger", dueDate: "05.05.24", status: "In-progress" },
-    { id: 4, name: "Cloth", dueDate: "15.05.24", status: "Completed" },
-    { id: 5, name: "Hotel", dueDate: "20.05.24", status: "Ongoing" }
-  ];
+  
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear().toString().slice(2);
+    return `${day}.${month}.${year}`;
+  };
 
-  const getProgressWidth = (status: any) => {
+  const getProgressWidth = (status: string) => {
     switch(status) {
-      case 'Completed': return '100%';
-      case 'Ongoing': return '60%';
-      case 'In-progress': return '45%';
-      case 'Delayed': return '30%';
+      case 'completed': return '100%';
+      case 'processing': return '75%';
+      case 'shipped': return '60%';
+      case 'pending': return '30%';
+      case 'canceled': return '0%';
       default: return '15%';
     }
   };
 
-  const getProgressColor = (status: any) => {
+  const getProgressColor = (status: string) => {
     switch(status) {
-      case 'Completed': return 'bg-green-600';
-      case 'Ongoing': return 'bg-yellow-400';
-      case 'In-progress': return 'bg-blue-500';
-      case 'Delayed': return 'bg-gray-500';
-      default: return 'bg-red-500';
+      case 'completed': return 'bg-green-600';
+      case 'processing': return 'bg-blue-500';
+      case 'shipped': return 'bg-yellow-400';
+      case 'pending': return 'bg-gray-500';
+      case 'canceled': return 'bg-red-500';
+      default: return 'bg-gray-300';
     }
+  };
+
+  // Transform status for display
+  const formatStatus = (status: string) => {
+    return status.charAt(0).toUpperCase() + status.slice(1);
   };
 
   return (
     <div className={`${isLightMode ? 'bg-white' : 'bg-slate-900'} rounded-lg shadow-sm border border-gray-300`}>
       <div className={`border-b ${isLightMode ? 'border-gray-200' : 'border-gray-700'} p-4 sm:p-6`}>
         <div className="flex flex-col sm:flex-row justify-between sm:items-center">
-          <h3 className={`text-lg font-medium ${isLightMode ? 'text-gray-900' : 'text-white'} mb-3 sm:mb-0`}>Service Progress</h3>
+          <h3 className={`text-lg font-medium ${isLightMode ? 'text-gray-900' : 'text-white'} mb-3 sm:mb-0`}>Order Progress</h3>
           <div className="w-full sm:w-auto">
             <select 
               className="w-full sm:w-auto bg-gray-200 rounded-lg border border-gray-300 text-black py-2 px-3 text-sm leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
@@ -45,10 +111,11 @@ export default function ProjectTable({ isLightMode }: any) {
               onChange={(e) => setSelectedStatus(e.target.value)}
             >
               <option value="All">All Status</option>
-              <option value="Completed">Completed</option>
-              <option value="Ongoing">Ongoing</option>
-              <option value="In-progress">In Progress</option>
-              <option value="Delayed">Delayed</option>
+              <option value="pending">Pending</option>
+              <option value="processing">Processing</option>
+              <option value="shipped">Shipped</option>
+              <option value="completed">Completed</option>
+              <option value="canceled">Canceled</option>
             </select>
           </div>
         </div>
@@ -58,10 +125,13 @@ export default function ProjectTable({ isLightMode }: any) {
           <thead className={isLightMode ? 'bg-gray-50' : 'bg-gray-800'}>
             <tr>
               <th scope="col" className={`px-4 sm:px-6 py-3 text-left text-xs font-medium ${isLightMode ? 'text-gray-500' : 'text-gray-300'} uppercase tracking-wider`}>
-                Service Name
+                Order Number
               </th>
               <th scope="col" className={`px-4 sm:px-6 py-3 text-left text-xs font-medium ${isLightMode ? 'text-gray-500' : 'text-gray-300'} uppercase tracking-wider`}>
-                Due Date
+                Category
+              </th>
+              <th scope="col" className={`px-4 sm:px-6 py-3 text-left text-xs font-medium ${isLightMode ? 'text-gray-500' : 'text-gray-300'} uppercase tracking-wider`}>
+                Date Placed
               </th>
               <th scope="col" className={`px-4 sm:px-6 py-3 text-left text-xs font-medium ${isLightMode ? 'text-gray-500' : 'text-gray-300'} uppercase tracking-wider`}>
                 Status
@@ -72,30 +142,41 @@ export default function ProjectTable({ isLightMode }: any) {
             </tr>
           </thead>
           <tbody className={`${isLightMode ? 'bg-white' : 'bg-slate-900'} divide-y ${isLightMode ? 'divide-gray-200' : 'divide-gray-700'}`}>
-            {projects
-              .filter(project => selectedStatus === 'All' || project.status === selectedStatus)
-              .map((project) => (
-                <tr key={project.id}>
-                  <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
-                    <div className={`text-xs sm:text-sm font-medium ${isLightMode ? 'text-gray-900' : 'text-white'}`}>{project.name}</div>
-                  </td>
-                  <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
-                    <div className={`text-xs sm:text-sm ${isLightMode ? 'text-gray-500' : 'text-gray-300'}`}>{project.dueDate}</div>
-                  </td>
-                  <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
-                    <StatusBadge status={project.status} />
-                  </td>
-                  <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div 
-                        className={`h-2 rounded-full ${getProgressColor(project.status)}`}
-                        style={{ width: getProgressWidth(project.status) }}
-                      >
+            {orders.length > 0 ? (
+              orders
+                .filter(order => selectedStatus === 'All' || order.status === selectedStatus)
+                .map((order) => (
+                  <tr key={order._id}>
+                    <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
+                      <div className={`text-xs sm:text-sm font-medium ${isLightMode ? 'text-gray-900' : 'text-white'}`}>{order.orderNumber}</div>
+                    </td>
+                    <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
+                      <div className={`text-xs sm:text-sm ${isLightMode ? 'text-gray-500' : 'text-gray-300'}`}>{order.category}</div>
+                    </td>
+                    <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
+                      <div className={`text-xs sm:text-sm ${isLightMode ? 'text-gray-500' : 'text-gray-300'}`}>{formatDate(order.placedAt)}</div>
+                    </td>
+                    <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
+                      <StatusBadge status={formatStatus(order.status)} />
+                    </td>
+                    <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div 
+                          className={`h-2 rounded-full ${getProgressColor(order.status)}`}
+                          style={{ width: getProgressWidth(order.status) }}
+                        >
+                        </div>
                       </div>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                  </tr>
+                ))
+            ) : (
+              <tr>
+                <td colSpan={5} className="px-4 sm:px-6 py-4 text-center">
+                  <div className={`text-sm ${isLightMode ? 'text-gray-500' : 'text-gray-300'}`}>No orders found</div>
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

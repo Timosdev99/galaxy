@@ -29,7 +29,7 @@ import {
     const navItems = [
       { icon: BarChart, text: "Dashboard", href: "#", isActive: true },
       { icon: Home, text: "Home", href: "/" },
-      {icon: MessageCircle, text: "Chat", href: "/chat"},
+      {icon: MessageCircle, text: "Chat", href: "/chats"},
       { icon: Package, text: "Orders", href: "#" },
       { icon: Ticket, text: "Tickets", href: "#" },
       { icon: User, text: "Customers", href: "#" },

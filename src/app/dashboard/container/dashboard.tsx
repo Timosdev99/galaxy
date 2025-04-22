@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useEffect, useState } from 'react';
@@ -9,16 +8,78 @@ import DashboardLayout from '../../components/layout/dashboardLayout';
 import StatCard from '../../components/layout/StatCard';
 import ProjectTable from '../../components/layout/ProjectTable';
 
+interface OrderItem {
+  productId: string;
+  name: string;
+  price: number;
+  quantity: number;
+  discount: number;
+  _id: string;
+}
+
+interface Payment {
+  method: string;
+  amount: number;
+  currency: string;
+  status: string;
+  _id: string;
+}
+
+interface Shipping {
+  address: string;
+  city: string;
+  state: string;
+  country: string;
+  postalCode: string;
+  contactPhone: string;
+  _id: string;
+}
+
+interface Order {
+  _id: string;
+  id: string;
+  orderNumber: string;
+  customerId: string;
+  marketplace: string;
+  category: string;
+  status: string;
+  items: OrderItem[];
+  totalAmount: number;
+  tax: number;
+  shippingCost: number;
+  discount: number;
+  finalAmount: number;
+  placedAt: string;
+  payment: Payment;
+  shipping: Shipping;
+  notes: string;
+  lastUpdatedAt: string;
+  createdAt: string;
+  updatedAt: string;
+  isRefundEligible: boolean;
+  isDigitalService: boolean;
+  isPhysicalProduct: boolean;
+  isFood: boolean;
+}
+
+interface OrdersResponse {
+  message: string;
+  orders: Order[];
+}
+
 export default function Dashboard() {
   const [isLightMode, setIsLightMode] = useState(false);
-  const { user } = useAuth();
+  const [orderData, setOrderData] = useState<OrdersResponse>({ message: '', orders: [] });
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { user, token, isAuthenticated } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!user) {
+    if (!isAuthenticated || !token) {
       router.push('/');
     }
-  }, [user, router]);
+  }, [isAuthenticated, token, router]);
 
   useEffect(() => {
     const storedTheme = localStorage.getItem("theme");
@@ -26,6 +87,44 @@ export default function Dashboard() {
       setIsLightMode(true);
     }
   }, []);
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      if (!token) return;
+      
+      try {
+        setIsLoading(true);
+        const response = await fetch(`https://galaxy-backend-imkz.onrender.com/order/v1/orders/customer/${user?.id}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch orders');
+        }
+        
+        const data: OrdersResponse = await response.json();
+        setOrderData(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'An unknown error occurred');
+        console.error('Error fetching orders:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchOrders();
+  }, [token]);
+
+  // Calculate stat metrics
+  const pendingOrders = orderData.orders?.filter(order => order.status === 'pending').length || 0;
+  const totalOrders = orderData.orders?.length || 0;
+  const totalRevenue = orderData.orders?.reduce((sum, order) => sum + order.finalAmount, 0).toFixed(2) || 0;
+
+  // Add console logs for debugging
+  console.log("Auth state:", { isAuthenticated, hasToken: !!token, hasUser: !!user });
+  console.log("Order data:", { totalOrders, pendingOrders, hasError: !!error });
 
   return (
     <DashboardLayout>
@@ -44,42 +143,53 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
-          <StatCard 
-            title="Open Tickets"
-            value="42"
-            subtitle="/104 total"
-            trend="down"
-            trendValue="8%"
-            icon={Ticket}
-            iconText="15 high priority"
-            isLightMode={isLightMode}
-          />
-          
-          <StatCard 
-            title="Total Orders"
-            value="95"
-            subtitle="/100 target"
-            trend="up"
-            trendValue="12%"
-            icon={Package}
-            iconText="$53,900 revenue"
-            isLightMode={isLightMode}
-          />
-          
-          <StatCard 
-            title="Discount Tier"
-            value="15%"
-            subtitle="standard discount"
-            trend="premium"
-            trendValue="Premium"
-            icon={Percent}
-            iconText="Up to 25% on bulk orders"
-            isLightMode={isLightMode}
-          />
-        </div>
+        {isLoading ? (
+          <div className="text-center py-8">Loading order data...</div>
+        ) : error ? (
+          <div className="text-center py-8 text-red-500">Error loading orders: {error}</div>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+              <StatCard 
+                title="Open Tickets"
+                value={pendingOrders.toString()}
+                subtitle={`/${totalOrders} total`}
+                trend="info"
+                trendValue="Pending"
+                icon={Ticket}
+                iconText="Waiting for processing"
+                isLightMode={isLightMode}
+              />
+              
+              <StatCard 
+                title="Total Orders"
+                value={totalOrders.toString()}
+                subtitle="/100 target"
+                trend={totalOrders > 50 ? "up" : "steady"}
+                trendValue={totalOrders > 50 ? "On track" : "Building"}
+                icon={Package}
+                iconText={`$${totalRevenue} cost`}
+                isLightMode={isLightMode}
+              />
+              
+              <StatCard 
+                title="Discount Tier"
+                value="15%"
+                subtitle="standard discount"
+                trend="premium"
+                trendValue="Premium"
+                icon={Percent}
+                iconText="Up to 25% on bulk orders"
+                isLightMode={isLightMode}
+              />
+            </div>
 
-        <ProjectTable isLightMode={isLightMode} />
+            <ProjectTable 
+              isLightMode={isLightMode}
+              orders={orderData.orders} 
+            />
+          </>
+        )}
       </div>
     </DashboardLayout>
   );
