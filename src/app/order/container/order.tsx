@@ -7,7 +7,6 @@ import { useSearchParams } from "next/navigation";
 import { useAuth,  } from '../../context/authContext'; 
 
 interface OrderItem {
-  productId: string;
   name: string;
   price: number;
   quantity: number;
@@ -45,7 +44,6 @@ interface CreateOrder {
   const [error, setError] = useState("");
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [newItem, setNewItem] = useState<OrderItem>({
-    productId: "",
     name: "",
     price: 0,
     quantity: 1,
@@ -93,19 +91,22 @@ interface CreateOrder {
   useEffect(() => {
     let itemsTotal = orderItems.reduce((sum, item) => {
       const itemTotal = item.price * item.quantity;
-      const itemDiscount = item.discount || 0;
+      // Apply 50% discount to each item
+      const itemDiscount = itemTotal * 0.5;
       return sum + (itemTotal - itemDiscount);
     }, 0);
-
+  
     const totalBeforeDiscount = itemsTotal + (orderData.tax || 0) + (orderData.shippingCost || 0);
-    const finalTotal = totalBeforeDiscount - (orderData.discount || 0);
+    // No need for order-level discount since it's applied to items
+    const finalTotal = totalBeforeDiscount;
     
     setOrderData(prev => ({
       ...prev,
       items: orderItems,
-      totalAmount: finalTotal > 0 ? finalTotal : 0
+      totalAmount: finalTotal > 0 ? finalTotal : 0,
+      discount: itemsTotal * 0.5 // Set discount to 50% of items total for display
     }));
-  }, [orderItems, orderData.tax, orderData.shippingCost, orderData.discount]);
+  }, [orderItems, orderData.tax, orderData.shippingCost]);
 
   const handleInputChange = (e: { target: { name: any; value: any; }; }) => {
     const { name, value } = e.target;
@@ -156,22 +157,29 @@ interface CreateOrder {
     });
   };
 
-  const addOrderItem = () => {
-    if (!newItem.productId || !newItem.name || newItem.price <= 0) {
-      setError("Please fill out required item fields");
-      return;
-    }
-    
-    setOrderItems([...orderItems, { ...newItem }]);
-    setNewItem({
-      productId: "",
-      name: "",
-      price: 0,
-      quantity: 1,
-      discount: 0
-    });
-    setError("");
-  };
+ const addOrderItem = () => {
+  if (!newItem.name || newItem.price <= 0) {
+    setError("Please fill out required item fields");
+    return;
+  }
+  
+  
+  const itemTotal = newItem.price * newItem.quantity;
+  const discountAmount = itemTotal * 0.5;
+  
+  setOrderItems([...orderItems, { 
+    ...newItem,
+    discount: discountAmount 
+  }]);
+  
+  setNewItem({
+    name: "",
+    price: 0,
+    quantity: 1,
+    discount: 0
+  });
+  setError("");
+};
 
   const removeOrderItem = (index: number) => {
     const updatedItems = [...orderItems];
@@ -395,16 +403,7 @@ interface CreateOrder {
               <div className="mb-6 p-4 bg-white rounded-lg shadow-sm border border-slate-200">
                 <h3 className="text-md font-medium text-slate-700 mb-3">Add New Item</h3>
                 <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
-                  <div>
-                    <input
-                      type="text"
-                      name="productId"
-                      value={newItem.productId}
-                      onChange={handleNewItemChange}
-                      placeholder="Product ID "
-                      className="w-full p-3 border border-slate-300 text-slate-900 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm"
-                    />
-                  </div>
+                 
                   <div>
                     <input
                       type="text"
@@ -439,16 +438,14 @@ interface CreateOrder {
                     />
                   </div>
                   <div className="flex space-x-2">
-                    <input
-                      type="number"
-                      name="discount"
-                      value={newItem.discount || ""}
-                      onChange={handleNewItemChange}
-                      placeholder="Discount"
-                      min="0"
-                      step="0.01"
-                      className="w-full p-3 border border-slate-300 text-slate-900 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm"
-                    />
+                                  <input
+                    type="number"
+                    name="discount"
+                    value={orderData.discount || ""}
+                    placeholder="50% discount"
+                    disabled
+                    className="w-full p-3 pl-8 border border-slate-300 text-slate-900 bg-slate-50 rounded-md shadow-sm"
+                  />
                     <button
                       type="button"
                       onClick={addOrderItem}
@@ -465,9 +462,6 @@ interface CreateOrder {
                   <table className="min-w-full divide-y divide-slate-200">
                     <thead className="bg-slate-100">
                       <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase tracking-wider">
-                          Product ID
-                        </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase tracking-wider">
                           Name
                         </th>
@@ -491,9 +485,6 @@ interface CreateOrder {
                     <tbody className="bg-white divide-y divide-slate-200">
                       {orderItems.map((item, index) => (
                         <tr key={index} className="hover:bg-slate-50 transition-colors">
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">
-                            {item.productId}
-                          </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">
                             {item.name}
                           </td>

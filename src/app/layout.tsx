@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "galaxy",
+  title: "ghostmarket",
   description: "Explore the world with Galaxy - your gate way to unforgettable adventures and seamless travel experince",
 };
 

@@ -2,19 +2,24 @@
 import { 
     BarChart, 
     Package, 
-    Ticket, 
-    FileText, 
-    User, 
+    Ticket,  
     Settings, 
-    HelpCircle,
     Home,
     LogOut,
-    MessageCircle
+    MessageCircle,
+    LucideIcon
   } from 'lucide-react';
-  import Link from 'next/link';
   import { useAuth } from '../../context/authContext';
-  import { useRouter } from 'next/navigation';
+  import { usePathname, useRouter } from 'next/navigation';
   import NavItems from './NavItems';
+import { useEffect, useState } from 'react';
+
+interface NavItem {
+  icon: LucideIcon;
+  text: string;
+  href: string;
+  isActive?: boolean;
+}
   
   export default function MobileSidebar({ isLightMode }: any) {
     const { logout } = useAuth();
@@ -25,17 +30,22 @@ import {
       router.push('/');
     };
   
-    
-    const navItems = [
-      { icon: BarChart, text: "Dashboard", href: "#", isActive: true },
-      { icon: Home, text: "Home", href: "/" },
-      {icon: MessageCircle, text: "Chat", href: "/chats"},
-      { icon: Package, text: "Orders", href: "#" },
-      { icon: Ticket, text: "Tickets", href: "#" },
-      { icon: User, text: "Customers", href: "#" },
-      { icon: Settings, text: "Settings", href: "#" },
-   //   { icon: HelpCircle, text: "Support", href: "#" }
-    ];
+    const pathname = usePathname();
+    const [navItems, setNavItems] = useState<NavItem[]>([
+       { icon: BarChart, text: "Dashboard", href: "/dashboard" },
+       { icon: Home, text: "Home", href: "/" },
+       { icon: MessageCircle, text: "Chat", href: "/chats" },
+       { icon: Package, text: "Order", href: "#" },
+       { icon: Ticket, text: "Tickets", href: "#" },
+     ]);
+
+     useEffect(() => {
+        const updatedNavItems = navItems.map((item) => ({
+          ...item,
+          isActive: item.href === pathname,
+        }));
+        setNavItems(updatedNavItems);
+      }, [pathname]);
   
     return (
       <aside className={`md:hidden flex flex-col w-full ${isLightMode ? 'bg-white' : 'bg-slate-900 text-white'} border-b-2 border-gray-300 z-40`}>

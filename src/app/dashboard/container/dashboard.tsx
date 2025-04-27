@@ -117,12 +117,12 @@ export default function Dashboard() {
     fetchOrders();
   }, [token]);
 
-  // Calculate stat metrics
+  
   const pendingOrders = orderData.orders?.filter(order => order.status === 'pending').length || 0;
   const totalOrders = orderData.orders?.length || 0;
   const totalRevenue = orderData.orders?.reduce((sum, order) => sum + order.finalAmount, 0).toFixed(2) || 0;
 
-  // Add console logs for debugging
+
   console.log("Auth state:", { isAuthenticated, hasToken: !!token, hasUser: !!user });
   console.log("Order data:", { totalOrders, pendingOrders, hasError: !!error });
 
@@ -131,7 +131,7 @@ export default function Dashboard() {
       <div className="container mx-auto">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 md:mb-8">
           <h2 className={`text-xl sm:text-2xl font-semibold ${isLightMode ? 'text-gray-800' : 'text-white'} mb-3 sm:mb-0`}>Overview</h2>
-          <div>
+          {/* <div>
             <select 
               className="bg-gray-200 rounded-lg border border-gray-300 text-black py-2 px-3 sm:py-3 sm:px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500 text-sm"
               defaultValue="Last 30 days"
@@ -140,11 +140,15 @@ export default function Dashboard() {
               <option>Last 30 days</option>
               <option>Last 90 days</option>
             </select>
-          </div>
+          </div> */}
         </div>
 
         {isLoading ? (
-          <div className="text-center py-8">Loading order data...</div>
+          <div className="text-center py-8"> <div className="flex items-center justify-center min-h-screen">
+        
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500">
+          </div>
+          </div></div>
         ) : error ? (
           <div className="text-center py-8 text-red-500">Error loading orders: {error}</div>
         ) : (
@@ -174,7 +178,7 @@ export default function Dashboard() {
               
               <StatCard 
                 title="Discount Tier"
-                value="15%"
+                value="50%"
                 subtitle="standard discount"
                 trend="premium"
                 trendValue="Premium"

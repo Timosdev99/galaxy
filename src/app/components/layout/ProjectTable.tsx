@@ -94,7 +94,7 @@ export default function ProjectTable({ isLightMode, orders = [] }: ProjectTableP
     }
   };
 
-  // Transform status for display
+  // transforming data to display 
   const formatStatus = (status: string) => {
     return status.charAt(0).toUpperCase() + status.slice(1);
   };
