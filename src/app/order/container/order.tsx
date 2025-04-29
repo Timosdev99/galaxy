@@ -23,7 +23,7 @@ interface CreateOrder {
   tax?: number;
   shippingCost?: number;
   discount?: number;
-  shipping: {
+  shipping: { 
     address: string;
     city: string;
     state: string;
@@ -252,17 +252,30 @@ interface CreateOrder {
   const getMarketplaceColor = () => {
     switch(orderData.marketplace) {
       case "GalaxyService": return "bg-indigo-700";
-      case "studio43": return "bg-emerald-700";
+      case "studio43": return "  bg-blue-950";
      // case "NorthernEats": return "bg-amber-700";
-      default: return "bg-indigo-700";
+      default: return "bg-indigo-700 ";
     }
   };
 
+ 
+  const getPageBackgroundStyle = () => {
+    return orderData.marketplace === "studio43" 
+      ? "bg-[url('/studio43.jpeg')] bg-cover bg-center bg-slate-50" 
+      : "bg-slate-50";
+  };
+  
+  const getContainerOpacityStyle = () => {
+    return orderData.marketplace === "studio43" 
+      ? "opacity-95" 
+      : "";
+  };
+
   return (
-    <div className="min-h-screen bg-slate-50 py-8">
-      <div className="container mx-auto px-4">
+    <div className={`min-h-screen ${getPageBackgroundStyle()} py-8`}>
+      <div className={`container ${getContainerOpacityStyle()} mx-auto px-4`}>
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-          <div className={`${getMarketplaceColor()} text-white p-6 flex items-center justify-between`}>
+          <div className={`${getMarketplaceColor()}  text-white  p-6 flex items-center justify-between`}>
             <div className="flex items-center">
               <ShoppingCart className="mr-3" size={28} />
               <h1 className="text-2xl md:text-3xl font-bold">Create New Order</h1>
@@ -284,7 +297,7 @@ interface CreateOrder {
         <p className="mt-1 text-sm text-green-700">Your order has been submitted and is now being processed.</p>
       </div>
     </div>
-    <div className="mt-4 pt-3 border-t border-green-200">
+    <div className="mt-4 pt-3  border-t border-green-200">
       <div className="flex justify-between text-sm">
         <span className="font-medium text-green-700">Order Total:</span>
         <span className="font-bold text-green-800">${orderData.totalAmount.toFixed(2)}</span>
