@@ -200,7 +200,7 @@ interface CreateOrder {
 
     try {
       
-      const response = await fetch("https://galaxy-backend-imkz.onrender.com/order/v1/orders", {
+      const response = await fetch("https://api.ghostmarket.net/order/v1/orders", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
