@@ -15,10 +15,10 @@ interface OrderItem {
 
 interface CreateOrder {
   customerId: string;
-  marketplace: "GalaxyService" | "studio43" | "NorthernEats";
+  marketplace: "GalaxyService" | "studio43" ;
   category: string;
   items: OrderItem[];
-  paymentMethod: "cash" | "bank transfer" | "credit" | "debit" | "paypal" | "crypto";
+  paymentMethod: "E-transfer" | "Shake Pay"  | "paypal" ;
   totalAmount: number;
   tax?: number;
   shippingCost?: number;
@@ -60,10 +60,10 @@ interface CreateOrder {
 
   const [orderData, setOrderData] = useState<CreateOrder>({
     customerId: "",
-    marketplace: initialMarketplace as "GalaxyService" | "studio43" | "NorthernEats",
+    marketplace: initialMarketplace as "GalaxyService" | "studio43" ,
     category: "",
     items: [],
-    paymentMethod: "cash",
+    paymentMethod: "E-transfer",
     totalAmount: 0,
     tax: 0,
     shippingCost: 0,
@@ -82,7 +82,7 @@ interface CreateOrder {
   useEffect(() => {
     setOrderData(prev => ({
       ...prev,
-      marketplace: initialMarketplace as "GalaxyService" | "studio43" | "NorthernEats",
+      marketplace: initialMarketplace as "GalaxyService" | "studio43" ,
       category: "",
       customerId: user?.id || "" 
     }));
@@ -222,10 +222,10 @@ interface CreateOrder {
         setOrderItems([]);
         setOrderData({
           customerId: "",
-          marketplace: initialMarketplace as "GalaxyService" | "studio43" | "NorthernEats",
+          marketplace: initialMarketplace as "GalaxyService" | "studio43" ,
           category: "",
           items: [],
-          paymentMethod: "cash",
+          paymentMethod: "E-transfer",
           totalAmount: 0,
           tax: 0,
           shippingCost: 0,
@@ -253,7 +253,7 @@ interface CreateOrder {
     switch(orderData.marketplace) {
       case "GalaxyService": return "bg-indigo-700";
       case "studio43": return "bg-emerald-700";
-      case "NorthernEats": return "bg-amber-700";
+     // case "NorthernEats": return "bg-amber-700";
       default: return "bg-indigo-700";
     }
   };
@@ -349,7 +349,7 @@ interface CreateOrder {
                   >
                     <option value="GalaxyService">Galaxy Service</option>
                     <option value="studio43">Studio 43</option>
-                    <option value="NorthernEats">Northern Eats</option>
+                    {/* <option value="NorthernEats">Nothern Eats</option> */}
                   </select>
                 </div>
 
@@ -383,12 +383,12 @@ interface CreateOrder {
                     required
                     className="w-full p-3 border border-slate-300 text-slate-900 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm"
                   >
-                    <option value="cash">Cash</option>
-                    <option value="bank transfer">Bank Transfer</option>
-                    <option value="credit">Bitcoin</option>
-                    <option value="debit">Ethereum</option>
+                    <option value="E-transfer">E-transfer</option>
+                    <option value="Shake pay">Shake Pay</option>
+                    {/* <option value="credit">Bitcoin</option>
+                    <option value="debit">Ethereum</option> */}
                     <option value="paypal">PayPal</option>
-                    <option value="crypto">Credit Card</option>
+                    {/* <option value="crypto">Credit Card</option> */}
                   </select>
                 </div>  
               </div>

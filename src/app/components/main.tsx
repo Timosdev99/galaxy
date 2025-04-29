@@ -24,14 +24,14 @@ const servicesData = [
         buttons: ["DoorDash Food Delivery", "Walmart Groceries", "Clothing", "Amazon"],
         cta: "Click here to place an order"
     },
-    {
-        head: "NorthernEats",
-        icon: <Home className="h-10 w-10 text-purple-600" />,  
-        description1: "We are the kings of the north!",
-        description2: "We offer up to 50% off on the following services:",
-        buttons: ["DoorDash Food Delivery", "Walmart", "Refunds", "eBay"],
-        cta: "Click here to place an order"
-    }
+    // {
+    //     head: "NorthernEats",
+    //     icon: <Home className="h-10 w-10 text-purple-600" />,  
+    //     description1: "We are the kings of the north!",
+    //     description2: "We offer up to 50% off on the following services:",
+    //     buttons: ["DoorDash Food Delivery", "Walmart", "Refunds", "eBay"],
+    //     cta: "Click here to place an order"
+    // }
 ];
 
 const ServiceCard = ({ service, index }: any) => {
@@ -43,7 +43,7 @@ const ServiceCard = ({ service, index }: any) => {
 
     return (
         <motion.div 
-            className={`bg-gradient-to-br ${gradients[index % 3]} p-6 sm:p-8 flex flex-col items-center shadow-lg rounded-xl h-full transition-all duration-300 hover:shadow-xl`}
+            className={`bg-gradient-to-br ${gradients[index % 3]} p-6  sm:p-8 flex flex-col  items-center shadow-lg rounded-xl h-full transition-all duration-300 hover:shadow-xl`}
             initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: index * 0.2 }}
@@ -189,7 +189,7 @@ export default function Mainpage() {
                     </motion.p>
                 </motion.div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 sm:gap-8">
                     {servicesData.map((service, index) => (
                         <ServiceCard key={index} service={service} index={index} />
                     ))}
@@ -245,7 +245,7 @@ export default function Mainpage() {
                             transition={{ duration: 0.8 }}
                             viewport={{ once: true }}
                         >
-                            <h3 className="text-xl font-bold mb-4">GalaxyServices</h3>
+                            <h3 className="text-xl font-bold mb-4">GhostMarket</h3>
                             <p className="text-gray-400">Your one-stop solution for discounted services across travel, food, shopping and more.</p>
                         </motion.div>
                         <motion.div
@@ -282,17 +282,7 @@ export default function Mainpage() {
                             transition={{ duration: 0.8, delay: 0.6 }}
                             viewport={{ once: true }}
                         >
-                            <h3 className="text-lg font-semibold mb-4">Contact Us</h3>
-                            <ul className="space-y-2">
-                                <li className="flex items-center">
-                                    <Mail className="h-5 w-5 text-gray-400 mr-2" />
-                                    <a href="mailto:info@galaxyservices.com" className="text-gray-400 hover:text-white transition-colors duration-300">info@galaxyservices.com</a>
-                                </li>
-                                <li className="flex items-center">
-                                    <Phone className="h-5 w-5 text-gray-400 mr-2" />
-                                    <span className="text-gray-400">+1 (555) 123-4567</span>
-                                </li>
-                            </ul>
+                           
                         </motion.div>
                     </div>
                     <motion.div 
