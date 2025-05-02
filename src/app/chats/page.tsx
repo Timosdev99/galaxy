@@ -11,8 +11,8 @@ import ChatInterface from './chatUI';
 export default function ChatPage() {
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
-  const {token} = useAuth()
-
+  const {token, user} = useAuth()
+const id = user?.id
   
 //   useEffect(() => {
     
@@ -38,7 +38,7 @@ export default function ChatPage() {
   return (
     <DashboardLayout>
       
-      <ChatInterface orderId={''}  />
+      <ChatInterface orderId={''}  userId={id}  role="user"  />
       
 {/* <div className="min-h-screen flex justify-center items-center bg-blue-950 text-white text-center p-5 w-full">
       <div className="container w-full min-h-screen flex justify-center items-center">
