@@ -245,10 +245,10 @@ export default function Mainpage() {
                             transition={{ duration: 0.8 }}
                             viewport={{ once: true }}
                         >
-                            <h3 className="text-xl font-bold mb-4">GhostMarket</h3>
-                            <p className="text-gray-400">Your one-stop solution for discounted services across travel, food, shopping and more.</p>
+                            {/* <h3 className="text-xl font-bold mb-4">GhostMarket</h3>
+                            <p className="text-gray-400">Your one-stop solution for discounted services across travel, food, shopping and more.</p> */}
                         </motion.div>
-                        <motion.div
+                        {/* <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.8, delay: 0.2 }}
@@ -261,8 +261,8 @@ export default function Mainpage() {
                                 <li><a href="#" className="text-gray-400 hover:text-white transition-colors duration-300">About Us</a></li>
                                 <li><a href="#" className="text-gray-400 hover:text-white transition-colors duration-300">Contact</a></li>
                             </ul>
-                        </motion.div>
-                        <motion.div
+                        </motion.div> */}
+                        {/* <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.8, delay: 0.4 }}
@@ -275,7 +275,7 @@ export default function Mainpage() {
                                 <li><a href="#" className="text-gray-400 hover:text-white transition-colors duration-300">Shopping</a></li>
                                 <li><a href="#" className="text-gray-400 hover:text-white transition-colors duration-300">Refunds</a></li>
                             </ul>
-                        </motion.div>
+                        </motion.div> */}
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             whileInView={{ opacity: 1, y: 0 }}

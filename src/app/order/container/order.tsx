@@ -18,7 +18,7 @@ interface CreateOrder {
   marketplace: "GalaxyService" | "studio43" ;
   category: string;
   items: OrderItem[];
-  paymentMethod: "E-transfer" | "Shake Pay"  | "paypal" ;
+  paymentMethod: "E-transfer" | "Shake pay"  | "paypal" ;
   totalAmount: number;
   tax?: number;
   shippingCost?: number;
@@ -261,7 +261,7 @@ interface CreateOrder {
  
   const getPageBackgroundStyle = () => {
     return orderData.marketplace === "studio43" 
-      ? "bg-[url('/studio43.jpeg')] bg-cover bg-center bg-slate-50" 
+      ? "bg-[url('/studio43.jpeg')] bg-no-repeat  lg:bg-cover bg-center bg-slate-50" 
       : "bg-slate-50";
   };
   
@@ -272,7 +272,7 @@ interface CreateOrder {
   };
 
   return (
-    <div className={`min-h-screen ${getPageBackgroundStyle()} py-8`}>
+    <div className={`min-h-screen ${getPageBackgroundStyle()}  py-8`}>
       <div className={`container ${getContainerOpacityStyle()} mx-auto px-4`}>
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
           <div className={`${getMarketplaceColor()}  text-white  p-6 flex items-center justify-between`}>

@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import DashboardLayout from '../components/layout/dashboardLayout';
 //import ChatUI from './chatUI'; 
 import { useAuth } from '../context/authContext';
+import ChatUI from './chatUI';
+import ChatInterface from './chatUI';
 
 export default function ChatPage() {
   const [isLoading, setIsLoading] = useState(true);
@@ -35,8 +37,10 @@ export default function ChatPage() {
 
   return (
     <DashboardLayout>
-      {/* <ChatUI /> */}
-<div className="min-h-screen flex justify-center items-center bg-blue-950 text-white text-center p-5 w-full">
+      
+      <ChatInterface orderId={''}  />
+      
+{/* <div className="min-h-screen flex justify-center items-center bg-blue-950 text-white text-center p-5 w-full">
       <div className="container w-full min-h-screen flex justify-center items-center">
         <div className="bg-blue-900 p-6 rounded-xl shadow-lg max-w-lg w-full">
           <p className="text-lg mb-6 leading-relaxed">We are currently working on our chat system. In the meantime, please contact us on Signal.</p>
@@ -56,7 +60,7 @@ export default function ChatPage() {
           <br/>
         </div>
       </div>
-    </div>
+    </div> */}
     </DashboardLayout>
   );
 }
