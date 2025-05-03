@@ -38,7 +38,7 @@ const id = user?.id
   return (
     <DashboardLayout>
       
-      <ChatInterface orderId={''}  userId={id}  role="user"  />
+      <ChatInterface orderId={''} role="user" userId={id || ''}  />
       
 {/* <div className="min-h-screen flex justify-center items-center bg-blue-950 text-white text-center p-5 w-full">
       <div className="container w-full min-h-screen flex justify-center items-center">
