@@ -637,7 +637,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                       className="w-full border rounded-full px-4 py-3 focus:outline-none transition-all pl-4 pr-12"
                       disabled={!isConnected || isSending}
                     />
-                    {newMessage.trim() && (
+                    {/* {newMessage.trim() && (
                       <button
                         onClick={() => setNewMessage('')}
                         className="absolute right-12 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
@@ -646,7 +646,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                         </svg>
                       </button>
-                    )}
+                    )} */}
                   </div>
                   
                   <button
