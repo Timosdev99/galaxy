@@ -36,57 +36,6 @@ interface ChatInterfaceProps {
   className?: string;
 }
 
-const useSocketConnection = (socketUrl: string, userId: string, role: string, chatId?: string, orderId?: string) => {
-  const [socket, setSocket] = useState<Socket | null>(null);
-  const [isConnected, setIsConnected] = useState(false);
-  const [connectionError, setConnectionError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!userId || !role) return;
-
-    const socketInstance = io(socketUrl, {
-      path: '/socket.io',
-      transports: ['websocket'],
-      reconnection: true,
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000,
-      timeout: 10000,
-      query: { userId, role, chatId, orderId }
-    });
-
-    socketInstance.on('connect', () => {
-      setIsConnected(true);
-      setConnectionError(null);
-      socketInstance.emit('authenticate', { userId, role, chatId, orderId });
-    });
-
-    socketInstance.on('connect_error', (error) => {
-      console.error('Socket connection error:', error);
-      setIsConnected(false);
-      setConnectionError('Failed to connect to chat server. Please refresh the page.');
-    });
-
-    socketInstance.on('disconnect', () => {
-      setIsConnected(false);
-    });
-
-    socketInstance.on('reconnect', (attemptNumber) => {
-      console.log(`Socket reconnected after ${attemptNumber} attempts`);
-      setIsConnected(true);
-      setConnectionError(null);
-      socketInstance.emit('authenticate', { userId, role, chatId, orderId });
-    });
-
-    setSocket(socketInstance);
-
-    return () => {
-      socketInstance.disconnect();
-    };
-  }, [socketUrl, userId, role, chatId, orderId]);
-
-  return { socket, isConnected, connectionError };
-};
-
 const ChatInterface: React.FC<ChatInterfaceProps> = ({
   apiBaseUrl = 'https://galaxy-backend-imkz.onrender.com',
   socketUrl = 'wss://galaxy-backend-imkz.onrender.com',
@@ -104,30 +53,77 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const [isCreatingNewChat, setIsCreatingNewChat] = useState(false);
   const [newChatSubject, setNewChatSubject] = useState('');
   const [showChatListOnMobile, setShowChatListOnMobile] = useState(true);
+  const [isInputFocused, setIsInputFocused] = useState(false);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const { socket, isConnected, connectionError } = useSocketConnection(
-    socketUrl, 
-    user?.id || '', 
-    user?.role || 'user',
-    activeChat?._id,
-    activeChat?.orderId
-  );
-
-  
+  // Check if mobile view
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
 
-  // Fetch user's chats
+  // Socket connection
+  const [socket, setSocket] = useState<Socket | null>(null);
+  const [isConnected, setIsConnected] = useState(false);
+  const [connectionError, setConnectionError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user?.id || !user?.role) return;
+
+    const socketInstance = io(socketUrl, {
+      path: '/socket.io',
+      transports: ['websocket'],
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+      timeout: 10000,
+      query: { 
+        userId: user.id, 
+        role: user.role,
+        chatId: activeChat?._id,
+        orderId: activeChat?.orderId
+      }
+    });
+
+    socketInstance.on('connect', () => {
+      setIsConnected(true);
+      setConnectionError(null);
+      socketInstance.emit('authenticate', { 
+        userId: user.id, 
+        role: user.role,
+        chatId: activeChat?._id,
+        orderId: activeChat?.orderId
+      });
+    });
+
+    socketInstance.on('connect_error', (error) => {
+      console.error('Socket connection error:', error);
+      setIsConnected(false);
+      setConnectionError('Connection error. Trying to reconnect...');
+    });
+
+    socketInstance.on('disconnect', () => {
+      setIsConnected(false);
+    });
+
+    socketInstance.on('reconnect', (attemptNumber) => {
+      console.log(`Reconnected after ${attemptNumber} attempts`);
+      setIsConnected(true);
+      setConnectionError(null);
+    });
+
+    setSocket(socketInstance);
+
+    return () => {
+      socketInstance.disconnect();
+    };
+  }, [socketUrl, user, activeChat]);
+
+  // Fetch chats and messages
   const fetchChats = useCallback(async () => {
     try {
       setIsLoading(true);
-      
-      if (!token) {
-        throw new Error('No authentication token available');
-      }
+      if (!token) return;
 
       const response = await axios.get(`${apiBaseUrl}/chats/v1/list`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -145,25 +141,20 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     } finally {
       setIsLoading(false);
     }
-  }, [apiBaseUrl, activeChat, token, isMobile]);
+  }, [apiBaseUrl, token, activeChat, isMobile]);
 
-  
   const fetchMessages = useCallback(async () => {
     if (!activeChat || !token) return;
 
     try {
       setIsLoading(true);
-      let response;
+      const endpoint = activeChat.isOrderChat && activeChat.orderId 
+        ? `${apiBaseUrl}/chats/v1/order/${activeChat.orderId}`
+        : `${apiBaseUrl}/chats/v1/${activeChat._id}`;
 
-      if (activeChat.isOrderChat && activeChat.orderId) {
-        response = await axios.get(`${apiBaseUrl}/chats/v1/order/${activeChat.orderId}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-      } else {
-        response = await axios.get(`${apiBaseUrl}/chats/v1/${activeChat._id}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-      }
+      const response = await axios.get(endpoint, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       
       if (response.data?.chat?.messages) {
         setMessages(response.data.chat.messages.map((msg: any) => ({
@@ -182,15 +173,15 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     if (user?.id && token) {
       fetchChats();
     }
-  }, [user?.id, token, fetchChats]);
+  }, [user, token, fetchChats]);
 
   useEffect(() => {
-    if (activeChat && token) {
+    if (activeChat) {
       fetchMessages();
     }
-  }, [activeChat, fetchMessages, token]);
+  }, [activeChat, fetchMessages]);
 
-  // Handle incoming socket messages
+  // Handle socket messages
   useEffect(() => {
     if (!socket || !activeChat) return;
 
@@ -240,11 +231,12 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     };
   }, [socket, activeChat]);
 
+  // Auto-scroll to bottom
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  
+  // Message functions
   const sendMessage = async () => {
     if ((!newMessage.trim() && selectedFiles.length === 0) || !socket || isSending || !activeChat || !token) return;
 
@@ -253,17 +245,17 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       
       if (selectedFiles.length > 0) {
         const formData = new FormData();
+        formData.append('content', newMessage);
         if (activeChat.orderId) {
           formData.append('orderId', activeChat.orderId);
         } else {
           formData.append('chatId', activeChat._id);
         }
-        formData.append('content', newMessage);
         selectedFiles.forEach(file => formData.append('attachments', file));
 
-        const endpoint = activeChat.orderId ? 
-          `${apiBaseUrl}/chats/v1/send-with-attachment` : 
-          `${apiBaseUrl}/chats/v1/${activeChat._id}/message`;
+        const endpoint = activeChat.orderId 
+          ? `${apiBaseUrl}/chats/v1/send-with-attachment` 
+          : `${apiBaseUrl}/chats/v1/${activeChat._id}/message`;
 
         await axios.post(endpoint, formData, {
           headers: { 
@@ -274,20 +266,17 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         
         setSelectedFiles([]);
       } else {
-        if (activeChat.orderId) {
-          await axios.post(`${apiBaseUrl}/chats/v1/send`, {
-            orderId: activeChat.orderId,
-            content: newMessage
-          }, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-        } else {
-          await axios.post(`${apiBaseUrl}/chats/v1/${activeChat._id}/message`, {
-            content: newMessage
-          }, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-        }
+        const endpoint = activeChat.orderId 
+          ? `${apiBaseUrl}/chats/v1/send`
+          : `${apiBaseUrl}/chats/v1/${activeChat._id}/message`;
+
+        const payload = activeChat.orderId 
+          ? { orderId: activeChat.orderId, content: newMessage }
+          : { content: newMessage };
+
+        await axios.post(endpoint, payload, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
       }
 
       setNewMessage('');
@@ -305,7 +294,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       setIsLoading(true);
       const response = await axios.post(`${apiBaseUrl}/chats/v1/create`, {
         subject: newChatSubject,
-        message: newMessage.trim() || "New chat started" // Default message if empty
+        message: newMessage.trim() || "New chat started"
       }, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -315,14 +304,11 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         setActiveChat(response.data.chat);
         setIsCreatingNewChat(false);
         setNewChatSubject('');
-        setNewMessage(''); // Clear the message input
+        setNewMessage('');
         if (isMobile) setShowChatListOnMobile(false);
       }
-    } catch (error: any) {
-      console.error('Failed to create chat:', {
-        error: error.response?.data || error.message,
-        status: error.response?.status
-      });
+    } catch (error) {
+      console.error('Failed to create chat:', error);
     } finally {
       setIsLoading(false);
     }
@@ -348,22 +334,17 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     }
   };
 
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  };
+  // UI helpers
+  const formatTime = (date: Date) => date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
   const formatDate = (date: Date) => {
     const today = new Date();
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
 
-    if (date.toDateString() === today.toDateString()) {
-      return 'Today';
-    } else if (date.toDateString() === yesterday.toDateString()) {
-      return 'Yesterday';
-    } else {
-      return date.toLocaleDateString();
-    }
+    if (date.toDateString() === today.toDateString()) return 'Today';
+    if (date.toDateString() === yesterday.toDateString()) return 'Yesterday';
+    return date.toLocaleDateString();
   };
 
   const handleChatSelect = (chat: Chat) => {
@@ -371,33 +352,21 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     if (isMobile) setShowChatListOnMobile(false);
   };
 
-  const handleBackToChatList = () => {
-    setShowChatListOnMobile(true);
-  };
+  const handleBackToChatList = () => setShowChatListOnMobile(true);
 
   return (
-    <div className={`flex h-[calc(100vh-150px)] rounded-lg shadow-lg bg-white ${className}`}>
-      {/* Chat sidebar - shown on desktop or when in list view on mobile */}
+    <div className={`flex h-[calc(100vh-150px)] md:h-[calc(100vh-100px)] rounded-xl shadow-xl bg-white overflow-hidden ${className}`}>
+      {/* Chat List Sidebar */}
       {(showChatListOnMobile || !isMobile) && (
-        <div className={`${isMobile ? 'w-full' : 'w-1/3'} border-r border-gray-200 bg-gray-50 flex flex-col`}>
-          <div className="p-4 border-b border-gray-200 bg-white">
+        <div className={`${isMobile ? 'w-full' : 'w-full md:w-1/3 lg:w-1/4'} border-r border-gray-200 bg-gray-50 flex flex-col`}>
+          <div className="p-4 border-b border-gray-200 bg-white sticky top-0 z-10">
             <div className="flex items-center justify-between">
-              {isMobile && !showChatListOnMobile ? (
-                <button 
-                  onClick={handleBackToChatList}
-                  className="mr-2 text-gray-600 hover:text-indigo-600"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
-                  </svg>
-                </button>
-              ) : null}
-              <h2 className="text-xl font-semibold text-gray-800">Messages</h2>
+              <h2 className="text-xl font-bold text-gray-800">Messages</h2>
               <button 
                 onClick={() => setIsCreatingNewChat(true)}
-                className="ml-2 bg-indigo-600 hover:bg-indigo-700 text-white p-2 rounded-full transition-colors"
+                className="p-2 rounded-full bg-indigo-100 text-indigo-600 hover:bg-indigo-200 transition-colors"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
                 </svg>
               </button>
@@ -423,9 +392,9 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
               <div className="flex gap-2">
                 <button
                   onClick={createNewChat}
-                  disabled={!newChatSubject.trim() || !newMessage.trim()}
+                  disabled={!newChatSubject.trim()}
                   className={`flex-1 py-2 px-4 rounded-lg transition-colors ${
-                    !newChatSubject.trim() || !newMessage.trim()
+                    !newChatSubject.trim()
                       ? 'bg-gray-300 cursor-not-allowed'
                       : 'bg-indigo-600 hover:bg-indigo-700 text-white'
                   }`}
@@ -477,9 +446,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                       {chat.lastMessage.content || 'Attachment'}
                     </p>
                   )}
-                  <div className="text-xs text-gray-400 mt-1">
-                    {chat.lastMessage ? formatDate(new Date(chat.lastMessage.timestamp)) : ''}
-                  </div>
                 </div>
               ))
             )}
@@ -487,13 +453,12 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         </div>
       )}
 
-      {/* Main chat area - hidden on mobile when showing chat list */}
+      {/* Chat Area */}
       {(!showChatListOnMobile || !isMobile) && (
         <div className={`flex-1 flex flex-col ${isMobile ? 'w-full' : ''}`}>
           {activeChat ? (
             <>
-              {/* Chat header */}
-              <div className="bg-indigo-600 text-white p-4 rounded-t-lg flex justify-between items-center">
+              <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-4 sticky top-0 z-10">
                 <div className="flex items-center">
                   {isMobile && (
                     <button 
@@ -512,21 +477,17 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                     <div className="flex items-center mt-1">
                       <span className={`h-2 w-2 rounded-full mr-1 ${isConnected ? 'bg-green-400' : 'bg-red-400'}`}></span>
                       <span className="text-xs">{isConnected ? 'Connected' : 'Disconnected'}</span>
-                      {connectionError && (
-                        <span className="text-xs ml-2 text-yellow-300">{connectionError}</span>
-                      )}
                     </div>
                   </div>
                 </div>
                 {typingUsers.size > 0 && (
-                  <div className="text-sm italic">
+                  <div className="text-sm italic mt-1">
                     {Array.from(typingUsers).join(', ')} is typing...
                   </div>
                 )}
               </div>
 
-              {/* Messages container */}
-              <div className="flex-1 p-4 overflow-y-auto bg-gray-50">
+              <div className="flex-1 p-4 overflow-y-auto bg-gradient-to-b from-gray-50 to-gray-100">
                 {isLoading ? (
                   <div className="flex justify-center items-center h-full">
                     <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-indigo-500"></div>
@@ -557,29 +518,25 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                         <div className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`}>
                           <div className={`max-w-xs md:max-w-md px-4 py-2 rounded-lg ${
                             isCurrentUser 
-                              ? 'bg-indigo-500 text-white rounded-br-none' 
-                              : 'bg-gray-200 text-gray-800 rounded-bl-none'
+                              ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-br-none shadow-md' 
+                              : 'bg-white text-gray-800 rounded-bl-none shadow-md'
                           }`}>
                             <p className="break-words">{msg.content}</p>
-                            {msg.attachments && msg.attachments.length > 0 && (
-                              <div className="mt-2">
-                                {msg.attachments.map((attachment, idx) => (
-                                  <div key={idx} className="mb-2 p-2 bg-white bg-opacity-20 rounded">
-                                    <a 
-                                      href={`${apiBaseUrl}/chats/v1/${activeChat._id}/messages/${msg._id}/attachments/${idx}`}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="text-sm flex items-center hover:underline"
-                                    >
-                                      <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                                      </svg>
-                                      {attachment.filename} ({Math.round(attachment.size / 1024)} KB)
-                                    </a>
-                                  </div>
-                                ))}
+                            {msg.attachments?.map((attachment, idx) => (
+                              <div key={idx} className="mt-2 p-2 bg-white bg-opacity-20 rounded">
+                                <a 
+                                  href={`${apiBaseUrl}/chats/v1/${activeChat._id}/messages/${msg._id}/attachments/${idx}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-sm flex items-center hover:underline"
+                                >
+                                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                  </svg>
+                                  {attachment.filename} ({Math.round(attachment.size / 1024)} KB)
+                                </a>
                               </div>
-                            )}
+                            ))}
                             <div className="text-xs opacity-70 flex justify-end items-center mt-1">
                               {formatTime(new Date(msg.timestamp))}
                               {isCurrentUser && (
@@ -605,15 +562,15 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 <div ref={messagesEndRef} />
               </div>
 
-              {/* Input area */}
-              <div className="p-4 border-t bg-white rounded-b-lg">
+            
+              <div className={`p-4 border-t bg-white sticky bottom-0 transition-all duration-300 ${isInputFocused ? 'shadow-lg' : ''}`}>
                 {selectedFiles.length > 0 && (
-                  <div className="mb-2 p-2 bg-gray-100 rounded-lg">
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="text-sm font-medium">Attachments ({selectedFiles.length})</span>
+                  <div className="mb-3 p-3 bg-indigo-50 rounded-lg border border-indigo-100">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm font-medium text-indigo-700">Attachments ({selectedFiles.length})</span>
                       <button 
                         onClick={() => setSelectedFiles([])}
-                        className="text-gray-500 hover:text-red-500 transition-colors"
+                        className="text-indigo-500 hover:text-red-500 transition-colors"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
@@ -622,17 +579,27 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {selectedFiles.map((file, index) => (
-                        <div key={index} className="text-xs bg-white p-1 rounded border flex items-center">
-                          <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div key={index} className="text-xs bg-white p-2 rounded-lg border border-indigo-100 flex items-center shadow-sm">
+                          <svg className="w-4 h-4 mr-1 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                           </svg>
-                          <span className="truncate max-w-xs">{file.name}</span>
+                          <span className="truncate max-w-[120px] md:max-w-[180px]">{file.name}</span>
                         </div>
                       ))}
                     </div>
                   </div>
                 )}
+                
                 <div className="flex items-center gap-2">
+                  <button 
+                    className="text-gray-500 hover:text-indigo-600 p-2 transition-colors rounded-full hover:bg-indigo-50"
+                    onClick={() => {}}
+                  >
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 100-2 1 1 0 000 2zm7-1a1 1 0 11-2 0 1 1 0 012 0zm-.464 5.535a1 1 0 10-1.415-1.414 3 3 0 01-4.242 0 1 1 0 00-1.415 1.414 5 5 0 007.072 0z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                  
                   <input
                     type="file"
                     ref={fileInputRef}
@@ -643,42 +610,55 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                   />
                   <button 
                     onClick={() => fileInputRef.current?.click()}
-                    className="text-gray-500 hover:text-indigo-600 p-2 transition-colors"
+                    className="text-gray-500 hover:text-indigo-600 p-2 transition-colors rounded-full hover:bg-indigo-50"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
                     </svg>
                   </button>
                   
-                  <input
-                    type="text"
-                    value={newMessage}
-                    onChange={(e) => {
-                      setNewMessage(e.target.value);
-                      handleTyping(true);
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        sendMessage();
-                      }
-                    }}
-                    onBlur={() => handleTyping(false)}
-                    placeholder="Type your message..."
-                    className="flex-1 border rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent transition-all"
-                    disabled={!isConnected || isSending}
-                  />
+                  <div className={`flex-1 relative transition-all duration-300 ${isInputFocused ? 'ring-2 ring-indigo-300' : ''}`}>
+                    <input
+                      type="text"
+                      value={newMessage}
+                      onChange={(e) => {
+                        setNewMessage(e.target.value);
+                        handleTyping(true);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          sendMessage();
+                        }
+                      }}
+                      onFocus={() => setIsInputFocused(true)}
+                      onBlur={() => setIsInputFocused(false)}
+                      placeholder="Type your message..."
+                      className="w-full border rounded-full px-4 py-3 focus:outline-none transition-all pl-4 pr-12"
+                      disabled={!isConnected || isSending}
+                    />
+                    {newMessage.trim() && (
+                      <button
+                        onClick={() => setNewMessage('')}
+                        className="absolute right-12 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
                   
                   <button
                     onClick={sendMessage}
                     disabled={(!newMessage.trim() && selectedFiles.length === 0) || !isConnected || isSending}
-                    className={`p-2 rounded-full transition-colors ${
+                    className={`p-3 rounded-full transition-all duration-300 transform hover:scale-110 ${
                       (!newMessage.trim() && selectedFiles.length === 0) || !isConnected || isSending
                         ? 'bg-indigo-300 cursor-not-allowed'
-                        : 'bg-indigo-600 hover:bg-indigo-700 text-white'
+                        : 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md hover:shadow-lg'
                     }`}
                   >
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                     </svg>
                   </button>
@@ -686,7 +666,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
               </div>
             </>
           ) : (
-            <div className="flex-1 flex flex-col items-center justify-center p-8 bg-gray-50">
+            <div className="flex-1 flex flex-col items-center justify-center p-8 bg-gradient-to-b from-gray-50 to-gray-100">
               <div className="text-center max-w-md">
                 <svg className="w-16 h-16 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
@@ -697,7 +677,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 </p>
                 <button
                   onClick={() => setIsCreatingNewChat(true)}
-                  className="mt-4 bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-lg transition-colors"
+                  className="mt-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white py-2 px-4 rounded-lg transition-colors shadow-md"
                 >
                   New Chat
                 </button>
