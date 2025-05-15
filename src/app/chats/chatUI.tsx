@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
 import axios from 'axios';
 import { useAuth } from '../context/authContext';
+import { FileIcon } from 'lucide-react';
 
 interface Message {
   _id: string;
@@ -90,7 +91,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       setConnectionError(null);
       socketInstance.emit('authenticate', { 
         userId: user.id, 
-        role: user.role,
+        role: user.role,  
         chatId: activeChat?._id,
         orderId: activeChat?.orderId
       });
@@ -353,6 +354,40 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   };
 
   const handleBackToChatList = () => setShowChatListOnMobile(true);
+  
+  const handleViewAttachment = async (
+    chatId: string,
+    messageId: string,
+    attachmentIndex: number
+  ) => {
+    try {
+      const response = await axios.get(
+        `${apiBaseUrl}/chats/v1/${chatId}/messages/${messageId}/attachments/${attachmentIndex}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          responseType: "blob", // Important: Tells Axios to expect binary data
+        }
+      );
+  
+      // Create a blob URL
+      const blobUrl = window.URL.createObjectURL(new Blob([response.data]));
+  
+      // For images: Open in a new tab or display in a modal
+      if (response.headers["content-type"].startsWith("image/")) {
+        window.open(blobUrl, "_blank");
+      } 
+      // For PDFs/Docs: Download or open in a new tab
+      else {
+        const link = document.createElement("a");
+        link.href = blobUrl;
+        link.setAttribute("download", "file"); // Optional: Force download
+        link.click();
+      }
+    } catch (error) {
+      console.error("Error fetching attachment:", error);
+      // Show error (e.g., toast notification)
+    }
+  };
 
   return (
     <div className={`flex h-[calc(100vh-150px)] md:h-[calc(100vh-100px)] rounded-xl shadow-xl bg-white overflow-hidden ${className}`}>
@@ -522,21 +557,34 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                               : 'bg-white text-gray-800 rounded-bl-none shadow-md'
                           }`}>
                             <p className="break-words">{msg.content}</p>
-                            {msg.attachments?.map((attachment, idx) => (
-                              <div key={idx} className="mt-2 p-2 bg-white bg-opacity-20 rounded">
-                                <a 
-                                  href={`${apiBaseUrl}/chats/v1/${activeChat._id}/messages/${msg._id}/attachments/${idx}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-sm flex items-center hover:underline"
-                                >
-                                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                                  </svg>
-                                  {attachment.filename} ({Math.round(attachment.size / 1024)} KB)
-                                </a>
-                              </div>
-                            ))}
+                            {
+  msg.attachments?.map((attachment, idx) => (
+    <div key={idx} className="mt-2 p-2 bg-white bg-opacity-20 rounded">
+      <button
+        onClick={() =>
+          handleViewAttachment(activeChat._id, msg._id, idx)
+        }
+        className="text-sm flex items-center hover:underline"
+      >
+        {attachment.contentType.startsWith("image/") ? (
+          <>
+            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            View Image
+          </>
+        ) : (
+          <>
+            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+            </svg>
+            {attachment.filename} ({Math.round(attachment.size / 1024)} KB)
+          </>
+        )}
+      </button>
+    </div>
+  ))
+}
                             <div className="text-xs opacity-70 flex justify-end items-center mt-1">
                               {formatTime(new Date(msg.timestamp))}
                               {isCurrentUser && (

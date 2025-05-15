@@ -72,7 +72,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       //console.log('checking authentication status with token:', existingToken);
       
       
-      const response = await fetch('https://api.ghostmarket.net/user/v1/validate-token', {
+      const response = await fetch('https://galaxy-backend-imkz.onrender.com/user/v1/validate-token', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -131,7 +131,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const logout = async () => {
     try {
       if (token) {
-        const response = await fetch('https://api.ghostmarket.net/user/v1/logout', {
+        const response = await fetch('https://galaxy-backend-imkz.onrender.com/user/v1/logout', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

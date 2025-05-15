@@ -7,6 +7,7 @@ import { Ticket, Package, Percent } from 'lucide-react';
 import DashboardLayout from '../../components/layout/dashboardLayout';
 import StatCard from '../../components/layout/StatCard';
 import ProjectTable from '../../components/layout/ProjectTable';
+import { NoOrder } from '@/app/components/NoServices';
 
 interface OrderItem {
   productId: string;
@@ -94,7 +95,7 @@ export default function Dashboard() {
       
       try {
         setIsLoading(true);
-        const response = await fetch(`https://api.ghostmarket.net/order/v1/orders/customer/${user?.id}`, {
+        const response = await fetch(`https://galaxy-backend-imkz.onrender.com/order/v1/orders/customer/${user?.id}`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -150,7 +151,7 @@ export default function Dashboard() {
           </div>
           </div></div>
         ) : error ? (
-          <div className="text-center py-8 text-blue-900 text-2xl font-bold font-san ">{error}</div>
+          <div className="text-center py-8 text-blue-900 text-2xl font-bold font-san ">{<NoOrder/>}</div>
         ) : (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">

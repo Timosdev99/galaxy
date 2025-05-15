@@ -1,28 +1,32 @@
+// OrderLink.tsx
+'use client';
 
-"use client"
-
-import React from "react";
-import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import Link from 'next/link';
+import { ArrowRight } from 'lucide-react';
 
 interface OrderLinkProps {
   marketplace: string;
+  service: string;
   className?: string;
+  style?: React.CSSProperties;
+  children?: React.ReactNode;
 }
 
-const OrderLink: React.FC<OrderLinkProps> = ({ marketplace, className }) => {
- 
-  const formattedMarketplace = marketplace === "GalaxyServices" ? "GalaxyService" : marketplace;
-  
+export default function OrderLink({
+  marketplace,
+  service,
+  className = '',
+  style = {},
+  children = 'Place Order'
+}: OrderLinkProps) {
   return (
-    <Link 
-      href={`/order?marketplace=${formattedMarketplace}`}
-      className={`flex items-center justify-center ${className || ""}`}
+    <Link
+      href={`/order?marketplace=${marketplace}&service=${service}`}
+      className={`flex items-center justify-center ${className}`}
+      style={style}
     >
-      Click here to place an order
+      {children}
       <ArrowRight className="h-5 w-5 ml-2" />
     </Link>
   );
-};
-
-export default OrderLink;
+}

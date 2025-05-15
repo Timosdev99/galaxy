@@ -140,7 +140,7 @@ const SignupModal = () => {
     try {
       console.log('Attempting signup with:', { email: formData.email, name: formData.name });
       
-      const response = await fetch('https://api.ghostmarket.net/user/v1/signUp', {
+      const response = await fetch('https://galaxy-backend-imkz.onrender.com/user/v1/signUp', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -210,7 +210,7 @@ const SignupModal = () => {
     try {
       console.log('Attempting login with:', { email: formData.email });
       
-      const response = await fetch('https://api.ghostmarket.net/user/v1/login', {
+      const response = await fetch('https://galaxy-backend-imkz.onrender.com/user/v1/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
