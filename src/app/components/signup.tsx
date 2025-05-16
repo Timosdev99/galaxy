@@ -284,7 +284,7 @@ const SignupModal = () => {
       {!isAuthenticated ? (
         <button 
           onClick={toggleModal}
-          className="bg-gradient-to-r from-blue-600 cursor-pointer lg:font-bold to-indigo-600 text-white lg:text-xl sm:py-4 sm:px-3 sm:rounded-sm px-5 py-3 rounded-lg hover:shadow-lg transition-all duration-300"
+          className="bg-gradient-to-l from-green-400 to-green-800  cursor-pointer lg:font-bold hover:opacity-65 text-white lg:text-xl sm:py-4 sm:px-3 sm:rounded-sm px-5 py-3 rounded-lg hover:shadow-lg transition-all duration-300"
         >
           Login / Register
         </button>
